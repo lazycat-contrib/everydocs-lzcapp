@@ -1,0 +1,18 @@
+package: community.lazycat.app.everydocs
+name: everydocs
+version: 1.6.0
+description: "Simple self-hosted document management system with full-text search, folders, tags and encrypted document storage."
+min_os_version: "1.5.0"
+homepage: https://github.com/jonashellmann/everydocs-core
+author: Jonas Hellmann
+license: GPL-3.0
+permissions:
+  required:
+    - net.internet
+locales:
+  zh:
+    name: EveryDocs 文档管理
+    description: "简洁的自托管文档管理系统：全文检索、文件夹与标签整理、可选加密存储，自带账号体系。"
+  en:
+    name: EveryDocs
+    description: "Simple self-hosted document management with full-text search, folders, tags and encrypted storage."

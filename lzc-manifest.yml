@@ -1,0 +1,49 @@
+application:
+  subdomain: everydocs
+  multi_instance: false
+  # EveryDocs ships an open signup endpoint (POST /signup -> users#create,
+  # no authentication filter): users self-register with name/email/password
+  # and then sign in via JWT (POST /auth/login). That is a real self-service
+  # account system, so public_path is enabled per the papra/servas precedent.
+  public_path:
+    - /
+  upstreams:
+    - location: /package-licenses/
+      backend: file:///lzcapp/pkg/content/licenses/
+    - location: /
+      backend: http://everydocs:5678/
+services:
+  everydocs:
+    # upstream: jonashellmann/everydocs:1.6.0
+    image: docker.1ms.run/jonashellmann/everydocs:1.6.0
+    environment:
+      # upstream Dockerfile defaults to mysql2; the sqlite3 gem is bundled in
+      # the image, so we point the database at the data volume instead and
+      # stay single-container (entrypoint runs `rake db:migrate` on boot).
+      - EVERYDOCS_DB_ADAPTER=sqlite3
+      - EVERYDOCS_DB_NAME=/var/everydocs-files/production.sqlite3
+      # Rails production requires SECRET_KEY_BASE; it MUST stay stable across
+      # container recreation or existing sessions/keys break.
+      - SECRET_KEY_BASE={{ printf "%x" (stable_secret "everydocs_secret") }}
+      - TZ=Asia/Shanghai
+    binds:
+      # all documents and the SQLite database live here
+      - /lzcapp/var/data:/var/everydocs-files
+usage: |
+  EveryDocs 是一个简洁的自托管文档管理系统：上传文档后自动提取内容做全文
+  检索，支持文件夹、标签、人物、状态等维度整理，并可为每份文档启用加密
+  存储。内置 JSON Web Token 账号体系。
+
+  使用方法：
+  1. 打开应用后在登录页使用「注册」入口自助创建账号（姓名 + 邮箱 + 密码）。
+  2. 登录后上传 PDF 等文档，系统会建立可检索的全文索引。
+  3. 注册入口一直开放，请使用强密码；如需私密使用，请勿外传应用地址。
+
+  数据与安全：
+  - 全部文档与数据库保存在 /lzcapp/var/data，卸载应用会一并删除，请定期
+    备份该目录。
+  - SECRET_KEY_BASE 已固定为随机值（容器重建不会变化），请勿手动修改。
+  - 许可为 GPL-3.0，正文见 /package-licenses/ 。
+
+  说明：
+  - 本包未做实机验证，功能以官方文档为准，遇到问题请反馈。
